@@ -6,7 +6,9 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const { ObjectID } = require("bson");
 const app = express();
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(
+  "sk_test_51L1DFFCwGCfttUfetaClgTfbb1SVvNORxfaMelkCv5hhM3um1PFvZ9phej8uuPYU5rYxuhRL202Pype4bSGMpBRa002Brx7Zaz"
+);
 
 app.use(cors());
 app.use(express.json());
@@ -40,6 +42,7 @@ async function run() {
     const toolsCollection = client.db("abc-tools").collection("tools");
     const bookingCollection = client.db("abc-tools").collection("booking");
     const userCollection = client.db("abc-tools").collection("users");
+    const paymentsCollection = client.db("abc-tools").collection("payments");
 
     app.get("/tools", async (req, res) => {
       const tools = await toolsCollection.find().toArray();
@@ -75,6 +78,25 @@ async function run() {
       const booking = await bookingCollection.findOne(query);
       res.send(booking);
     });
+
+    app.patch("/booking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectID(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionID: payment.transactionId,
+        },
+      };
+      const updatedBooking = await bookingCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      const result = await paymentsCollection.insertOne(payment);
+      res.send(updatedDoc);
+    });
+
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const service = req.body;
       const price = service.price;
@@ -86,6 +108,8 @@ async function run() {
       });
       res.send({ clientSecret: paymentIntent.client_secret });
     });
+
+    // get user by using email
     app.put("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -98,7 +122,33 @@ async function run() {
       const token = jwt.sign({ email: email }, ACCESS_TOKEN);
       res.send({ result, token });
     });
-    app.get("/users", async (req, res) => {
+
+    // make an admin
+    app.put("/users/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const requester = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role == "admin") {
+        const filter = { email: email };
+        const updateDoc = {
+          $set: { role: "admin" },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } else {
+        res.status(403).send({ message: "forbidden" });
+      }
+    });
+
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const admin = user.role == "admin";
+      res.send({ admin: admin });
+    });
+    app.get("/users", verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
