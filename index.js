@@ -152,6 +152,12 @@ async function run() {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
+    app.delete("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectID(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
   }
 }
