@@ -41,6 +41,7 @@ async function run() {
     await client.connect();
     const toolsCollection = client.db("abc-tools").collection("tools");
     const bookingCollection = client.db("abc-tools").collection("booking");
+    const allBooking = client.db("abc-tools").collection("allbooking");
     const userCollection = client.db("abc-tools").collection("users");
     const paymentsCollection = client.db("abc-tools").collection("payments");
     const reviewsCollection = client.db("abc-tools").collection("reviews");
@@ -60,10 +61,12 @@ async function run() {
       const result = await toolsCollection.insertOne(tools);
       res.send(result);
     });
+
     app.post("/booking", async (req, res) => {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
-      res.send(result);
+      const allResult = await allBooking.insertOne(booking);
+      res.send({ result, allResult });
     });
 
     app.get("/booking", verifyJWT, async (req, res) => {
@@ -100,10 +103,28 @@ async function run() {
         filter,
         updatedDoc
       );
+      const allCollection = await allBooking.updateOne(filter, updatedDoc);
       const result = await paymentsCollection.insertOne(payment);
       res.send(updatedDoc);
     });
 
+    app.patch("/allbooking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectID(id) };
+      const updatedDoc = {
+        $set: {
+          status: "shipped",
+        },
+      };
+      const allCollection = await allBooking.updateOne(filter, updatedDoc);
+      res.send(updatedDoc);
+    });
+
+    // all booking
+    app.get("/allbooking", async (req, res) => {
+      const allbooking = await allBooking.find().toArray();
+      res.send(allbooking);
+    });
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const service = req.body;
       const price = service.price;
