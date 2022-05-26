@@ -43,6 +43,7 @@ async function run() {
     const bookingCollection = client.db("abc-tools").collection("booking");
     const allBooking = client.db("abc-tools").collection("allbooking");
     const userCollection = client.db("abc-tools").collection("users");
+    const allUserCollection = client.db("abc-tools").collection("allusers");
     const paymentsCollection = client.db("abc-tools").collection("payments");
     const reviewsCollection = client.db("abc-tools").collection("reviews");
 
@@ -150,6 +151,22 @@ async function run() {
       const token = jwt.sign({ email: email }, ACCESS_TOKEN);
       res.send({ result, token });
     });
+    app.patch("/allusers/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await allUserCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const token = jwt.sign({ email: email }, ACCESS_TOKEN);
+      res.send({ result, token });
+    });
 
     // make an admin
     app.put("/users/admin/:email", verifyJWT, async (req, res) => {
@@ -181,29 +198,21 @@ async function run() {
       res.send(users);
     });
     //
-
-    // app.get("/booking", verifyJWT, async (req, res) => {
-    //   const userEmail = req.query.userEmail;
-    //   const decodedEmail = req.decoded.email;
-    //   if (userEmail === decodedEmail) {
-    //     const query = { userEmail: userEmail };
-    //     const booking = await bookingCollection.find(query).toArray();
-    //     res.send(booking);
-    //   } else {
-    //     return res.status(403).send({ message: "Forbidden access" });
-    //   }
-    // });
-
-    app.get("/users", verifyJWT, async (req, res) => {
+    // all user
+    app.get("/allusers", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const decodedEmail = req.decoded.email;
-      if (email === decodedEmail) {
-        const query = { email: email };
-        const users = await userCollection.findOne(query).toArray();
-        res.send(users);
-      } else {
-        return res.status(403).send({ message: "Forbidden access" });
-      }
+      const query = { email: email };
+      const booking = await allUserCollection.find(query).toArray();
+      res.send(booking);
+    });
+    // update all user
+    app.patch("/alluser/:email", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const info = req.body;
+      console.log(info);
+      const filter = { email: email };
+      const allCollection = await allUserCollection.updateOne(info, filter);
+      res.send(allCollection);
     });
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection.find().toArray();
