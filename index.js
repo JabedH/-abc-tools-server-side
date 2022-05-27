@@ -3,8 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const { ObjectID } = require("bson");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 const app = express();
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -52,7 +52,7 @@ async function run() {
     });
     app.get("/tools/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectID(id) };
+      const query = { _id: ObjectId(id) };
       const tools = await toolsCollection.findOne(query);
       res.send(tools);
     });
@@ -83,7 +83,7 @@ async function run() {
 
     app.get("/booking/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectID(id) };
+      const query = { _id: ObjectId(id) };
       const booking = await bookingCollection.findOne(query);
       res.send(booking);
     });
@@ -91,7 +91,7 @@ async function run() {
     app.patch("/booking/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const payment = req.body;
-      const filter = { _id: ObjectID(id) };
+      const filter = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           paid: true,
@@ -110,7 +110,7 @@ async function run() {
 
     app.patch("/allbooking/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: ObjectID(id) };
+      const filter = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           status: "shipped",
@@ -224,13 +224,13 @@ async function run() {
     });
     app.delete("/booking/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectID(id) };
+      const query = { _id: ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
       res.send(result);
     });
     app.delete("/tools/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: ObjectID(id) };
+      const query = { _id: ObjectId(id) };
       const result = await toolsCollection.deleteOne(query);
       res.send(result);
     });
