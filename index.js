@@ -4,14 +4,16 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const stripe = require("stripe")(STRIPE_SECRET_KEY);
+const stripe = require("stripe")(
+  "sk_test_51L1DFFCwGCfttUfetaClgTfbb1SVvNORxfaMelkCv5hhM3um1PFvZ9phej8uuPYU5rYxuhRL202Pype4bSGMpBRa002Brx7Zaz"
+);
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://abc-tools:DB_PASS@cluster0.oegym.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://abc-tools:isSTypyRDJFl75UK@cluster0.oegym.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
