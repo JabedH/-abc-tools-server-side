@@ -1,19 +1,18 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const { ObjectID } = require("bson");
 const app = express();
 
-const stripe = require("stripe")(
-  "sk_test_51L1DFFCwGCfttUfetaClgTfbb1SVvNORxfaMelkCv5hhM3um1PFvZ9phej8uuPYU5rYxuhRL202Pype4bSGMpBRa002Brx7Zaz"
-);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://abc-tools:BA3JOitVLJqxn5c9@cluster0.oegym.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.oegym.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -27,7 +26,7 @@ function verifyJWT(req, res, next) {
     return res.status(401).send({ message: "UnAuthorized access" });
   }
   const token = authHeader.split(" ")[1];
-  jwt.verify(token, ACCESS_TOKEN, function (err, decoded) {
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
     if (err) {
       return res.status(403).send({ message: "Forbidden access" });
     }
@@ -148,7 +147,7 @@ async function run() {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign({ email: email }, ACCESS_TOKEN);
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
       res.send({ result, token });
     });
     app.patch("/allusers/:email", async (req, res) => {
@@ -164,7 +163,7 @@ async function run() {
         updateDoc,
         options
       );
-      const token = jwt.sign({ email: email }, ACCESS_TOKEN);
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
       res.send({ result, token });
     });
 

@@ -18,5 +18,13 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.6.0",
     "stripe": "^9.4.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/programming-hero-web-course1/manufacturer-website-server-side-JabedH.git"
+  },
+  "bugs": {
+    "url": "https://github.com/programming-hero-web-course1/manufacturer-website-server-side-JabedH/issues"
+  },
+  "homepage": "https://github.com/programming-hero-web-course1/manufacturer-website-server-side-JabedH#readme"
 }
